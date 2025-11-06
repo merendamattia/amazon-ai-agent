@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/merendamattia/amazon-reviewer-ai-agent/compare/v1.1.0...v1.2.0) (2025-11-06)
+
+
+### Features
+
+* expand short Amazon URLs and improve link validation in Telegram bot ([c61f86c](https://github.com/merendamattia/amazon-reviewer-ai-agent/commit/c61f86ccb83402fda753eed79a1fe7a785d4681a))
+
 # [1.1.0](https://github.com/merendamattia/amazon-reviewer-ai-agent/compare/v1.0.0...v1.1.0) (2025-11-06)
 
 
