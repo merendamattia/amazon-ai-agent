@@ -115,7 +115,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for:
 - Commit conventions
 - Pull request process
 
-## � Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -139,7 +139,6 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](./LICE
 
 For issues, feature requests, or questions:
 - Open an [issue on GitHub](https://github.com/merendamattia/amazon-reviewer-ai-agent/issues)
-- Check existing documentation and FAQs
 
 ## 🙏 Acknowledgments
 
