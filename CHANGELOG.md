@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/merendamattia/amazon-reviewer-ai-agent/compare/v1.2.0...v1.2.1) (2025-11-06)
+
+
+### Bug Fixes
+
+* reduce max token limit in truncate_to_max_tokens function to improve performance ([fb47d29](https://github.com/merendamattia/amazon-reviewer-ai-agent/commit/fb47d292af689f73d53efb05edf771b1b045b815))
+
 # [1.2.0](https://github.com/merendamattia/amazon-reviewer-ai-agent/compare/v1.1.0...v1.2.0) (2025-11-06)
 
 
