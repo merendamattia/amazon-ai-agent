@@ -1,0 +1,23 @@
+name: 'Check Docker Image building'
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+
+jobs:
+  docker-build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build & Run Docker image
+        run: |
+          cp .env.example .env
+          docker build --no-cache -t amazon-reviewer-ai-agent:ci .
