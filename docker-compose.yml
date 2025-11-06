@@ -1,0 +1,17 @@
+services:
+  amazon-reviewer-telegram-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: amazon-reviewer-telegram-bot
+    env_file: .env
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      - ./logs:/app/logs

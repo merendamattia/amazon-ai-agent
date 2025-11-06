@@ -10,6 +10,7 @@ An intelligent AI agent that generates detailed and professional Amazon product 
 
 - 🤖 **OpenAI Integration** - Leverages GPT models for high-quality review generation
 - 🔗 **Direct Link Processing** - Paste an Amazon product link and get instant reviews
+- 📱 **Telegram Bot** - Interact with the agent directly through Telegram
 - 🌐 **Web Content Extraction** - Advanced web fetching with intelligent token management
 - 📊 **Smart Token Management** - Automatic content truncation for optimal performance
 - 💬 **Multi-Tool Agent System** - Uses DataPizza framework for powerful agent capabilities
@@ -63,7 +64,7 @@ An intelligent AI agent that generates detailed and professional Amazon product 
 
 ### Running the Application
 
-Generate a review for an Amazon product:
+#### CLI - Generate a review for an Amazon product:
 
 ```bash
 python app.py https://www.amazon.com/your-product-link
@@ -75,6 +76,37 @@ The agent will:
 3. Analyze the data using AI
 4. Generate a professional, comprehensive review
 
+#### Telegram Bot - Interactive chat interface:
+Quick start:
+```bash
+# 1. Update .env with TELEGRAM_BOT_TOKEN
+# 2. Run the bot
+python telegram_bot.py
+```
+
+Then open Telegram, find your bot, and start using it!
+
+**Bot Features:**
+- 📝 Interactive menu to generate reviews
+- 🔗 Simply paste Amazon links
+- ⏳ Real-time processing status updates
+- 💬 Support for long reviews (automatically split into multiple messages)
+- ❌ Easy cancel option
+
+### Docker
+
+**Telegram Bot Mode:**
+```bash
+docker build -t amazon-reviewer .
+docker run --env-file .env --restart unless-stopped amazon-reviewer
+```
+
+**Docker Compose (easiest):**
+```bash
+# Run Telegram Bot
+docker compose up
+```
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for:
@@ -83,7 +115,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for:
 - Commit conventions
 - Pull request process
 
-## 🐛 Troubleshooting
+## � Troubleshooting
 
 ### Common Issues
 
