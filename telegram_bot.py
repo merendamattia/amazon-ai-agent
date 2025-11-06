@@ -1,6 +1,5 @@
 import logging
 import os
-from datetime import timedelta
 
 import requests
 from dotenv import load_dotenv
@@ -30,9 +29,6 @@ WAITING_FOR_LINK, GENERATING_REVIEW = range(2)
 
 # Global agent instance
 agent = None
-
-# Conversation timeout: 1 hour
-CONVERSATION_TIMEOUT = timedelta(hours=1)
 
 
 # Main keyboard layout
@@ -211,7 +207,6 @@ async def handle_amazon_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
         review = agent.generate_review(final_link)
 
         # Send the review as a single message
-        # Don't split into multiple parts - keep it all in one message
         await update.message.reply_text(
             f"📝 RECENSIONE GENERATA\n\n{review}",
             reply_markup=get_main_keyboard(),
@@ -315,7 +310,6 @@ def main() -> None:
             CommandHandler("help", help_command),
             CommandHandler("cancel", cancel),
         ],
-        conversation_timeout=CONVERSATION_TIMEOUT,
     )
 
     application.add_handler(conv_handler)
