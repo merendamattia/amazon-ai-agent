@@ -114,7 +114,7 @@ async def handle_button_press(
     if user_input == "📝 Genera Recensione":
         message = (
             "📎 Per favore, inviami il link del prodotto Amazon\n\n"
-            "⏳ La generazione della recensione potrebbe richiedere un minuto o due...\n\n"
+            "⏳ La generazione della recensione potrebbe richiedere qualche minuto...\n\n"
             "Usa il pulsante ❌ Stop per annullare in qualsiasi momento."
         )
         await update.message.reply_text(message, reply_markup=get_main_keyboard())
@@ -189,7 +189,7 @@ async def handle_amazon_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
     # Show loading message
     await update.message.reply_text(
         "⏳ Sto generando la tua recensione...\n\n"
-        "Questo potrebbe richiedere un minuto o due. Per favore, aspetta.\n\n"
+        "Questo potrebbe richiedere qualche minuto... Per favore, aspetta.\n\n"
         "🔄 Analizzando il prodotto...",
         reply_markup=get_main_keyboard(),
     )
@@ -210,40 +210,18 @@ async def handle_amazon_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         review = agent.generate_review(final_link)
 
-        # Check if review is too long for a single message (max 4096 chars)
-        if len(review) > 4000:
-            # Split the review into multiple messages
-            messages = [review[i : i + 4000] for i in range(0, len(review), 4000)]
+        # Send the review as a single message
+        # Don't split into multiple parts - keep it all in one message
+        await update.message.reply_text(
+            f"📝 RECENSIONE GENERATA\n\n{review}",
+            reply_markup=get_main_keyboard(),
+        )
 
-            for idx, msg in enumerate(messages):
-                if idx == 0:
-                    header = "📝 RECENSIONE GENERATA (parte 1)\n\n"
-                    await update.message.reply_text(
-                        header + msg, reply_markup=get_main_keyboard()
-                    )
-                else:
-                    part_num = idx + 1
-                    await update.message.reply_text(
-                        f"Parte {part_num}\n\n{msg}", reply_markup=get_main_keyboard()
-                    )
-
-            # Add final message with link
-            await update.message.reply_text(
-                f"✅ Recensione completata!\n\n"
-                f"🔗 Link prodotto:\n{link}\n\n"
-                f"📝 Vuoi generare un'altra recensione?",
-                reply_markup=get_main_keyboard(),
-            )
-        else:
-            await update.message.reply_text(
-                f"📝 RECENSIONE GENERATA\n\n{review}\n\n" f"🔗 Link prodotto:\n`{link}`",
-                reply_markup=get_main_keyboard(),
-            )
-
-            # Ask for another review
-            await update.message.reply_text(
-                "📝 Vuoi generare un'altra recensione?", reply_markup=get_main_keyboard()
-            )
+        # Ask for another review
+        await update.message.reply_text(
+            "📝 Inviami un altro link per una nuova recensione, oppure usa i pulsanti.",
+            reply_markup=get_main_keyboard(),
+        )
 
         logger.info(
             f"Review generated successfully for user {update.effective_user.id}"
