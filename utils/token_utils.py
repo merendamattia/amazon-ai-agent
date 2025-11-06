@@ -5,7 +5,7 @@ import tiktoken
 logger = logging.getLogger(__name__)
 
 
-def truncate_to_max_tokens(text, max_tokens=300000):
+def truncate_to_max_tokens(text, max_tokens=200000):
     """Truncate text to a maximum number of tokens"""
     encoding = tiktoken.get_encoding("cl100k_base")
     tokens = encoding.encode(text)

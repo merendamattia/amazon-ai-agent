@@ -24,7 +24,7 @@ class TruncatedWebFetchTool:
         """Call the tool and truncate the result"""
         logger.debug(f"Fetching content from: {url}")
         result = self.original_tool(url)
-        result = truncate_to_max_tokens(result, max_tokens=300000)
+        result = truncate_to_max_tokens(result, max_tokens=200000)
         return result
 
 
