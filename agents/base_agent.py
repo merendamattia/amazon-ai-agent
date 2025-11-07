@@ -1,12 +1,17 @@
 import logging
+import os
 from abc import ABC, abstractmethod
 
 from datapizza.agents import Agent
 from datapizza.clients.openai import OpenAIClient
 from datapizza.tools.web_fetch import WebFetchTool
+from dotenv import load_dotenv
 
 from utils.prompt_loader import load_prompt
 from utils.token_utils import truncate_to_max_tokens
+
+# Load environment variables
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +19,10 @@ logger = logging.getLogger(__name__)
 class TruncatedWebFetchTool:
     """Wrapper for WebFetchTool that truncates responses to max tokens"""
 
-    def __init__(self, original_tool):
+    def __init__(self, original_tool, max_tokens=None):
         self.original_tool = original_tool
+        # Use env var if provided, otherwise use default
+        self.max_tokens = max_tokens or int(os.getenv("MAX_TOKENS", "200000"))
 
     def __getattr__(self, name):
         """Delegate attribute access to original tool"""
@@ -25,7 +32,7 @@ class TruncatedWebFetchTool:
         """Call the tool and truncate the result"""
         logger.debug(f"Fetching content from: {url}")
         result = self.original_tool(url)
-        result = truncate_to_max_tokens(result, max_tokens=200000)
+        result = truncate_to_max_tokens(result, max_tokens=self.max_tokens)
         return result
 
 
@@ -54,9 +61,17 @@ class BaseAmazonAgent(ABC):
         system_prompt = load_prompt(self.get_system_prompt_filename())
         self.run_prompt_template = load_prompt(self.get_run_prompt_filename())
 
-        # Create wrapped web tool
-        web_tool = WebFetchTool(timeout=15.0)
-        wrapped_tool = TruncatedWebFetchTool(web_tool)
+        # Get configuration from environment variables
+        max_tokens = int(os.getenv("MAX_TOKENS", "200000"))
+        web_fetch_timeout = float(os.getenv("WEB_FETCH_TIMEOUT", "15"))
+
+        logger.info(
+            f"Using MAX_TOKENS={max_tokens}, WEB_FETCH_TIMEOUT={web_fetch_timeout}"
+        )
+
+        # Create wrapped web tool with configuration
+        web_tool = WebFetchTool(timeout=web_fetch_timeout)
+        wrapped_tool = TruncatedWebFetchTool(web_tool, max_tokens=max_tokens)
 
         # Create agent
         self.agent = Agent(
