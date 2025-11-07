@@ -217,9 +217,6 @@ async def handle_amazon_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
             "🔄 Analizzando il prodotto..."
         )
         success_header = "💼 ANNUNCIO DI VENDITA GENERATO"
-        next_msg = (
-            "💼 Inviami un altro link per un nuovo annuncio, oppure usa i pulsanti."
-        )
     else:
         loading_msg = (
             "⏳ Sto generando la tua recensione...\n\n"
@@ -227,9 +224,6 @@ async def handle_amazon_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
             "🔄 Analizzando il prodotto..."
         )
         success_header = "📝 RECENSIONE GENERATA"
-        next_msg = (
-            "📝 Inviami un altro link per una nuova recensione, oppure usa i pulsanti."
-        )
 
     await update.message.reply_text(loading_msg, reply_markup=get_main_keyboard())
 
@@ -265,9 +259,6 @@ async def handle_amazon_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
             f"{success_header}\n\n{result}",
             reply_markup=get_main_keyboard(),
         )
-
-        # Ask for another request
-        await update.message.reply_text(next_msg, reply_markup=get_main_keyboard())
 
         logger.info(
             f"{output_type.capitalize()} generated successfully for user {update.effective_user.id}"
