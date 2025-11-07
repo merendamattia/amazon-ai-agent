@@ -1,7 +1,7 @@
-# 📝 Amazon Reviewer AI Agent
+# 📝 Amazon AI Agent
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Latest Release](https://img.shields.io/github/v/release/merendamattia/amazon-reviewer-ai-agent?label=release)](https://github.com/merendamattia/amazon-reviewer-ai-agent/releases)
+[![Latest Release](https://img.shields.io/github/v/release/merendamattia/amazon-ai-agent?label=release)](https://github.com/merendamattia/amazon-ai-agent/releases)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)](https://www.python.org/)
 
 An intelligent AI agent that generates detailed and professional Amazon product reviews and sales listings from product links. Powered by OpenAI's latest models with advanced web scraping and content analysis capabilities.
@@ -30,14 +30,14 @@ An intelligent AI agent that generates detailed and professional Amazon product 
 
 1. **Clone the repository and enter the directory:**
    ```bash
-   git clone https://github.com/merendamattia/amazon-reviewer-ai-agent.git
-   cd amazon-reviewer-ai-agent
+   git clone https://github.com/merendamattia/amazon-ai-agent.git
+   cd amazon-ai-agent
    ```
 
 2. **Create and activate a Python virtual environment:**
    ```bash
-   conda create --name amazon-reviewer python=3.11.13
-   conda activate amazon-reviewer
+   conda create --name amazon-ai-agent-env python=3.11.13
+   conda activate amazon-reviewer-env
    ```
 
    Or using venv:
@@ -104,8 +104,8 @@ Then open Telegram, find your bot, and start using it!
 
 **Telegram Bot Mode:**
 ```bash
-docker build -t amazon-reviewer .
-docker run --env-file .env --restart unless-stopped amazon-reviewer
+docker build -t amazon-ai-agent:local .
+docker run --env-file .env --restart unless-stopped amazon-ai-agent:local
 ```
 
 **Docker Compose (easiest):**
@@ -145,7 +145,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](./LICE
 ## 📞 Support
 
 For issues, feature requests, or questions:
-- Open an [issue on GitHub](https://github.com/merendamattia/amazon-reviewer-ai-agent/issues)
+- Open an [issue on GitHub](https://github.com/merendamattia/amazon-ai-agent/issues)
 
 ## 🙏 Acknowledgments
 
