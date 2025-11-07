@@ -26,7 +26,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Conversation states
-WAITING_FOR_LINK, WAITING_FOR_TYPE, GENERATING_OUTPUT = range(3)
+WAITING_FOR_LINK, GENERATING_OUTPUT = range(2)
 
 # Global agent instances
 reviewer_agent = None
@@ -92,6 +92,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and show main menu"""
     user = update.effective_user
     logger.info(f"User {user.id} started the bot")
+
+    # Clear any previous user data
+    context.user_data.clear()
 
     welcome_message = (
         f"👋 Ciao {user.first_name}!\n\n"
@@ -270,6 +273,9 @@ async def handle_amazon_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
             f"{output_type.capitalize()} generated successfully for user {update.effective_user.id}"
         )
 
+        # Clear user data after successful generation
+        context.user_data.clear()
+
     except Exception as e:
         logger.error(f"Error generating {output_type}: {e}")
         await update.message.reply_text(
@@ -278,6 +284,8 @@ async def handle_amazon_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
             f"Per favore, riprova con un link diverso.",
             reply_markup=get_main_keyboard(),
         )
+        # Clear user data after error
+        context.user_data.clear()
 
     return WAITING_FOR_LINK
 
