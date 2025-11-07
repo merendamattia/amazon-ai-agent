@@ -14,6 +14,7 @@ from telegram.ext import (
 )
 
 from agents.amazon_reviewer_agent import AmazonReviewerAgent
+from agents.amazon_sales_listing_agent import AmazonSalesListingAgent
 
 # Load environment variables
 load_dotenv()
@@ -25,25 +26,29 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Conversation states
-WAITING_FOR_LINK, GENERATING_REVIEW = range(2)
+WAITING_FOR_LINK, GENERATING_OUTPUT = range(2)
 
-# Global agent instance
-agent = None
+# Global agent instances
+reviewer_agent = None
+listing_agent = None
 
 
 # Main keyboard layout
 def get_main_keyboard():
     """Get the main keyboard with persistent buttons"""
     return ReplyKeyboardMarkup(
-        [["📝 Genera Recensione", "ℹ️ Aiuto"], ["❌ Stop"]],
+        [
+            ["📝 Genera Recensione", "💼 Genera Annuncio"],
+            ["ℹ️ Aiuto", "❌ Stop"],
+        ],
         resize_keyboard=True,
         one_time_keyboard=False,
     )
 
 
 def _initialize_agent():
-    """Initialize the Amazon Reviewer Agent"""
-    global agent
+    """Initialize the Amazon Reviewer and Sales Listing Agents"""
+    global reviewer_agent, listing_agent
     try:
         openai_api_key = os.getenv("OPENAI_API_KEY")
         openai_model = os.getenv("OPENAI_MODEL")
@@ -52,11 +57,12 @@ def _initialize_agent():
             logger.error("OPENAI_API_KEY and OPENAI_MODEL must be defined in .env")
             return False
 
-        agent = AmazonReviewerAgent(openai_api_key, openai_model)
-        logger.info("Amazon Reviewer Agent initialized successfully")
+        reviewer_agent = AmazonReviewerAgent(openai_api_key, openai_model)
+        listing_agent = AmazonSalesListingAgent(openai_api_key, openai_model)
+        logger.info("Amazon Reviewer and Sales Listing Agents initialized successfully")
         return True
     except Exception as e:
-        logger.error(f"Failed to initialize agent: {e}")
+        logger.error(f"Failed to initialize agents: {e}")
         return False
 
 
@@ -87,10 +93,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.effective_user
     logger.info(f"User {user.id} started the bot")
 
+    # Clear any previous user data
+    context.user_data.clear()
+
     welcome_message = (
         f"👋 Ciao {user.first_name}!\n\n"
-        "🤖 Sono il tuo Amazon Reviewer AI Agent Bot.\n\n"
-        "✨ Posso aiutarti a generare recensioni dettagliate per prodotti Amazon in pochi click!\n\n"
+        "🤖 Sono il tuo Amazon AI Agent Bot.\n\n"
+        "✨ Posso aiutarti a:\n"
+        "• 📝 Generare recensioni dettagliate\n"
+        "• 💼 Creare annunci di vendita professionali\n\n"
         "📱 Usa i pulsanti qui sotto per iniziare:"
     )
 
@@ -108,9 +119,20 @@ async def handle_button_press(
     user_input = " ".join(user_input.split())
 
     if user_input == "📝 Genera Recensione":
+        context.user_data["output_type"] = "review"
         message = (
             "📎 Per favore, inviami il link del prodotto Amazon\n\n"
             "⏳ La generazione della recensione potrebbe richiedere qualche minuto...\n\n"
+            "Usa il pulsante ❌ Stop per annullare in qualsiasi momento."
+        )
+        await update.message.reply_text(message, reply_markup=get_main_keyboard())
+        return WAITING_FOR_LINK
+
+    elif user_input == "💼 Genera Annuncio":
+        context.user_data["output_type"] = "listing"
+        message = (
+            "📎 Per favore, inviami il link del prodotto Amazon\n\n"
+            "⏳ La generazione dell'annuncio potrebbe richiedere qualche minuto...\n\n"
             "Usa il pulsante ❌ Stop per annullare in qualsiasi momento."
         )
         await update.message.reply_text(message, reply_markup=get_main_keyboard())
@@ -120,10 +142,12 @@ async def handle_button_press(
         help_text = (
             "ℹ️ Guida Rapida\n\n"
             "Come usare il bot:\n"
-            "1️⃣ Premi 📝 Genera Recensione\n"
+            "1️⃣ Scegli cosa generare:\n"
+            "   • 📝 Recensione prodotto\n"
+            "   • 💼 Annuncio di vendita\n"
             "2️⃣ Incolla il link del prodotto Amazon\n"
             "3️⃣ Aspetta la generazione (1-2 minuti)\n"
-            "4️⃣ Ricevi la tua recensione!\n\n"
+            "4️⃣ Ricevi il tuo testo!\n\n"
             "Comandi disponibili:\n"
             "• /start - Menu principale\n"
             "• /help - Questa guida\n\n"
@@ -137,7 +161,7 @@ async def handle_button_press(
 
     elif user_input == "❌ Stop":
         goodbye_text = (
-            "👋 Arrivederci!\n\n" "Usa /start quando vuoi generare una nuova recensione."
+            "👋 Arrivederci!\n\n" "Usa /start quando vuoi generare un nuovo testo."
         )
         await update.message.reply_text(goodbye_text, reply_markup=get_main_keyboard())
         return WAITING_FOR_LINK
@@ -156,7 +180,7 @@ async def handle_button_press(
 
 
 async def handle_amazon_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Handle Amazon product link and generate review"""
+    """Handle Amazon product link and generate review or listing"""
     link = update.message.text.strip()
 
     # Remove extra spaces within the link as well
@@ -180,56 +204,79 @@ async def handle_amazon_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
         return WAITING_FOR_LINK
 
-    logger.info(f"User {update.effective_user.id} requested review for: {link}")
+    # Get output type from context (default to review if not set)
+    output_type = context.user_data.get("output_type", "review")
+
+    logger.info(f"User {update.effective_user.id} requested {output_type} for: {link}")
 
     # Show loading message
-    await update.message.reply_text(
-        "⏳ Sto generando la tua recensione...\n\n"
-        "Questo potrebbe richiedere qualche minuto... Per favore, aspetta.\n\n"
-        "🔄 Analizzando il prodotto...",
-        reply_markup=get_main_keyboard(),
-    )
+    if output_type == "listing":
+        loading_msg = (
+            "⏳ Sto generando il tuo annuncio di vendita...\n\n"
+            "Questo potrebbe richiedere qualche minuto... Per favore, aspetta.\n\n"
+            "🔄 Analizzando il prodotto..."
+        )
+        success_header = "💼 ANNUNCIO DI VENDITA GENERATO"
+    else:
+        loading_msg = (
+            "⏳ Sto generando la tua recensione...\n\n"
+            "Questo potrebbe richiedere qualche minuto... Per favore, aspetta.\n\n"
+            "🔄 Analizzando il prodotto..."
+        )
+        success_header = "📝 RECENSIONE GENERATA"
+
+    await update.message.reply_text(loading_msg, reply_markup=get_main_keyboard())
 
     try:
         # Expand short URLs (amzn.to, amzn.eu, a.co, etc.) to full Amazon URLs
         final_link = expand_short_url(link)
         logger.info(f"Using expanded link: {final_link}")
 
-        # Generate review using the agent
-        if agent is None:
-            await update.message.reply_text(
-                "❌ Errore: L'agente non è stato inizializzato.\n\n"
-                "Usa /start per ricominciare.",
-                reply_markup=get_main_keyboard(),
-            )
-            return WAITING_FOR_LINK
+        # Generate output using the appropriate agent
+        if output_type == "listing":
+            if listing_agent is None:
+                await update.message.reply_text(
+                    "❌ Errore: L'agente non è stato inizializzato.\n\n"
+                    "Usa /start per ricominciare.",
+                    reply_markup=get_main_keyboard(),
+                )
+                return WAITING_FOR_LINK
 
-        review = agent.generate_review(final_link)
+            result = listing_agent.generate_listing(final_link)
+        else:
+            if reviewer_agent is None:
+                await update.message.reply_text(
+                    "❌ Errore: L'agente non è stato inizializzato.\n\n"
+                    "Usa /start per ricominciare.",
+                    reply_markup=get_main_keyboard(),
+                )
+                return WAITING_FOR_LINK
 
-        # Send the review as a single message
+            result = reviewer_agent.generate_review(final_link)
+
+        # Send the result as a single message
         await update.message.reply_text(
-            f"📝 RECENSIONE GENERATA\n\n{review}",
-            reply_markup=get_main_keyboard(),
-        )
-
-        # Ask for another review
-        await update.message.reply_text(
-            "📝 Inviami un altro link per una nuova recensione, oppure usa i pulsanti.",
+            f"{success_header}\n\n{result}",
             reply_markup=get_main_keyboard(),
         )
 
         logger.info(
-            f"Review generated successfully for user {update.effective_user.id}"
+            f"{output_type.capitalize()} generated successfully for user {update.effective_user.id}"
         )
 
+        # Clear user data after successful generation
+        context.user_data.clear()
+
     except Exception as e:
-        logger.error(f"Error generating review: {e}")
+        logger.error(f"Error generating {output_type}: {e}")
         await update.message.reply_text(
             f"❌ Errore durante la generazione\n\n"
             f"`{str(e)}`\n\n"
             f"Per favore, riprova con un link diverso.",
             reply_markup=get_main_keyboard(),
         )
+        # Clear user data after error
+        context.user_data.clear()
 
     return WAITING_FOR_LINK
 
@@ -237,12 +284,14 @@ async def handle_amazon_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send help message"""
     help_text = (
-        "ℹ️ Amazon Reviewer AI Agent Bot\n\n"
+        "ℹ️ Amazon AI Agent Bot\n\n"
         "Come usare:\n"
-        "1️⃣ Premi il pulsante 📝 Genera Recensione\n"
+        "1️⃣ Scegli cosa generare:\n"
+        "   • 📝 Recensione prodotto\n"
+        "   • 💼 Annuncio di vendita\n"
         "2️⃣ Incolla il link del prodotto Amazon\n"
         "3️⃣ Aspetta la generazione (1-2 minuti)\n"
-        "4️⃣ Ricevi la tua recensione!\n\n"
+        "4️⃣ Ricevi il tuo testo!\n\n"
         "Comandi disponibili:\n"
         "• /start - Menu principale\n"
         "• /help - Questa guida\n\n"
@@ -262,6 +311,8 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         "👋 Operazione annullata\n\n" "Usa i pulsanti per continuare!",
         reply_markup=get_main_keyboard(),
     )
+    # Clear user data
+    context.user_data.clear()
     return WAITING_FOR_LINK
 
 
@@ -301,7 +352,7 @@ def main() -> None:
             WAITING_FOR_LINK: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_button_press),
             ],
-            GENERATING_REVIEW: [
+            GENERATING_OUTPUT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_button_press),
             ],
         },

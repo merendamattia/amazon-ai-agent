@@ -1,15 +1,17 @@
-# 📝 Amazon Reviewer AI Agent
+# 📝 Amazon AI Agent
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Latest Release](https://img.shields.io/github/v/release/merendamattia/amazon-reviewer-ai-agent?label=release)](https://github.com/merendamattia/amazon-reviewer-ai-agent/releases)
+[![Latest Release](https://img.shields.io/github/v/release/merendamattia/amazon-ai-agent?label=release)](https://github.com/merendamattia/amazon-ai-agent/releases)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)](https://www.python.org/)
 
-An intelligent AI agent that generates detailed and professional Amazon product reviews from product links. Powered by OpenAI's latest models with advanced web scraping and content analysis capabilities.
+An intelligent AI agent that generates detailed and professional Amazon product reviews and sales listings from product links. Powered by OpenAI's latest models with advanced web scraping and content analysis capabilities.
 
 ## ✨ Features
 
-- 🤖 **OpenAI Integration** - Leverages GPT models for high-quality review generation
-- 🔗 **Direct Link Processing** - Paste an Amazon product link and get instant reviews
+- 🤖 **OpenAI Integration** - Leverages GPT models for high-quality content generation
+- 📝 **Product Reviews** - Generate detailed and professional Amazon product reviews
+- 💼 **Sales Listings** - Create persuasive sales listings for platforms like eBay, Subito, or Facebook Marketplace
+- 🔗 **Direct Link Processing** - Paste an Amazon product link and get instant output
 - 📱 **Telegram Bot** - Interact with the agent directly through Telegram
 - 🌐 **Web Content Extraction** - Advanced web fetching with intelligent token management
 - 📊 **Smart Token Management** - Automatic content truncation for optimal performance
@@ -28,14 +30,14 @@ An intelligent AI agent that generates detailed and professional Amazon product 
 
 1. **Clone the repository and enter the directory:**
    ```bash
-   git clone https://github.com/merendamattia/amazon-reviewer-ai-agent.git
-   cd amazon-reviewer-ai-agent
+   git clone https://github.com/merendamattia/amazon-ai-agent.git
+   cd amazon-ai-agent
    ```
 
 2. **Create and activate a Python virtual environment:**
    ```bash
-   conda create --name amazon-reviewer python=3.11.13
-   conda activate amazon-reviewer
+   conda create --name amazon-ai-agent-env python=3.11.13
+   conda activate amazon-ai-agent-env
    ```
 
    Or using venv:
@@ -64,17 +66,21 @@ An intelligent AI agent that generates detailed and professional Amazon product 
 
 ### Running the Application
 
-#### CLI - Generate a review for an Amazon product:
+#### CLI - Generate a review or sales listing for an Amazon product:
 
 ```bash
+# Generate a review (default)
 python app.py https://www.amazon.com/your-product-link
+
+# Generate a sales listing
+python app.py --type listing https://www.amazon.com/your-product-link
 ```
 
 The agent will:
 1. Fetch the product page content
 2. Extract product information and existing reviews
 3. Analyze the data using AI
-4. Generate a professional, comprehensive review
+4. Generate a professional, comprehensive review or sales listing
 
 #### Telegram Bot - Interactive chat interface:
 Quick start:
@@ -87,18 +93,19 @@ python telegram_bot.py
 Then open Telegram, find your bot, and start using it!
 
 **Bot Features:**
-- 📝 Interactive menu to generate reviews
+- 📝 Interactive menu to generate reviews or sales listings
 - 🔗 Simply paste Amazon links
 - ⏳ Real-time processing status updates
-- 💬 Support for long reviews (automatically split into multiple messages)
+- 💬 Support for long outputs (automatically split into multiple messages)
 - ❌ Easy cancel option
+- 💼 Choose between product reviews and sales listings
 
 ### Docker
 
 **Telegram Bot Mode:**
 ```bash
-docker build -t amazon-reviewer .
-docker run --env-file .env --restart unless-stopped amazon-reviewer
+docker build -t amazon-ai-agent:local .
+docker run --env-file .env --restart unless-stopped amazon-ai-agent:local
 ```
 
 **Docker Compose (easiest):**
@@ -138,7 +145,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](./LICE
 ## 📞 Support
 
 For issues, feature requests, or questions:
-- Open an [issue on GitHub](https://github.com/merendamattia/amazon-reviewer-ai-agent/issues)
+- Open an [issue on GitHub](https://github.com/merendamattia/amazon-ai-agent/issues)
 
 ## 🙏 Acknowledgments
 

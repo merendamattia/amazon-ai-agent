@@ -1,9 +1,9 @@
 services:
-  amazon-reviewer-telegram-bot:
+  amazon-ai-agent-telegram-bot:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: amazon-reviewer-telegram-bot
+    container_name: amazon-ai-agent-telegram-bot
     env_file: .env
     restart: unless-stopped
     environment:
