@@ -18,8 +18,16 @@ def create_web_fetch_tool():
     from datapizza.tools.web_fetch import WebFetchTool
 
     # Get configuration from environment variables
-    web_fetch_timeout = float(os.getenv("WEB_FETCH_TIMEOUT", "15"))
-    max_tokens = int(os.getenv("MAX_TOKENS", "200000"))
+    try:
+        web_fetch_timeout = float(os.getenv("WEB_FETCH_TIMEOUT", "15"))
+    except ValueError:
+        raise ValueError(
+            "Invalid WEB_FETCH_TIMEOUT value in environment: must be a number"
+        )
+    try:
+        max_tokens = int(os.getenv("MAX_TOKENS", "150000"))
+    except ValueError:
+        raise ValueError("Invalid MAX_TOKENS value in environment: must be an integer")
 
     # Create the base web fetch tool
     web_fetch_tool = WebFetchTool(timeout=web_fetch_timeout)
