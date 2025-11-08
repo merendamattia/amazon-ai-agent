@@ -14,17 +14,25 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def _load_environment():
-    """Load environment variables"""
+def _load_environment(provider):
+    """Load environment variables for the specified provider"""
     load_dotenv()
-    openai_api_key = os.getenv("OPENAI_API_KEY")
-    openai_model = os.getenv("OPENAI_MODEL")
 
-    if not openai_api_key or not openai_model:
-        raise ValueError("OPENAI_API_KEY and OPENAI_MODEL must be defined in .env")
+    if provider.lower() == "openai":
+        api_key = os.getenv("OPENAI_API_KEY")
+        model = os.getenv("OPENAI_MODEL")
+        if not api_key or not model:
+            raise ValueError("OPENAI_API_KEY and OPENAI_MODEL must be defined in .env")
+    elif provider.lower() == "google":
+        api_key = os.getenv("GOOGLE_API_KEY")
+        model = os.getenv("GOOGLE_MODEL")
+        if not api_key or not model:
+            raise ValueError("GOOGLE_API_KEY and GOOGLE_MODEL must be defined in .env")
+    else:
+        raise ValueError(f"Unsupported provider: {provider}. Available: openai, google")
 
-    logger.info(f"Environment loaded with model: {openai_model}")
-    return openai_api_key, openai_model
+    logger.info(f"Environment loaded with provider: {provider}, model: {model}")
+    return api_key, model
 
 
 def _parse_arguments():
@@ -39,6 +47,12 @@ def _parse_arguments():
         default="review",
         help="Output type: 'review' for product review or 'listing' for sales listing (default: review)",
     )
+    parser.add_argument(
+        "--provider",
+        choices=["openai", "google"],
+        default="google",
+        help="AI provider: 'openai' or 'google' (default: google)",
+    )
     return parser.parse_args()
 
 
@@ -51,14 +65,17 @@ def main():
         args = _parse_arguments()
         link = args.link
         output_type = args.type
-        logger.info(f"Processing link: {link} (type: {output_type})")
+        provider = args.provider
+        logger.info(
+            f"Processing link: {link} (type: {output_type}, provider: {provider})"
+        )
 
         # Load environment
-        api_key, model = _load_environment()
+        api_key, model = _load_environment(provider)
 
         # Initialize appropriate agent based on type
         if output_type == "listing":
-            agent = AmazonSalesListingAgent(api_key, model)
+            agent = AmazonSalesListingAgent(api_key, model, provider=provider)
             logger.info("Sales Listing Agent initialized")
 
             # Generate sales listing
@@ -66,7 +83,7 @@ def main():
             result = agent.generate_listing(link)
             logger.info("Sales listing generated successfully")
         else:
-            agent = AmazonReviewerAgent(api_key, model)
+            agent = AmazonReviewerAgent(api_key, model, provider=provider)
             logger.info("Reviewer Agent initialized")
 
             # Generate review

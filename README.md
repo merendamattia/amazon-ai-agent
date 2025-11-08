@@ -4,11 +4,11 @@
 [![Latest Release](https://img.shields.io/github/v/release/merendamattia/amazon-ai-agent?label=release)](https://github.com/merendamattia/amazon-ai-agent/releases)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)](https://www.python.org/)
 
-An intelligent AI agent that generates detailed and professional Amazon product reviews and sales listings from product links. Powered by OpenAI's latest models with advanced web scraping and content analysis capabilities.
+An intelligent AI agent that generates detailed and professional Amazon product reviews and sales listings from product links. Powered by OpenAI and Google AI models with advanced web scraping and content analysis capabilities.
 
 ## ✨ Features
 
-- 🤖 **OpenAI Integration** - Leverages GPT models for high-quality content generation
+- 🤖 **Multi-Provider Support** - Works with OpenAI (GPT) and Google (Gemini) models
 - 📝 **Product Reviews** - Generate detailed and professional Amazon product reviews
 - 💼 **Sales Listings** - Create persuasive sales listings for platforms like eBay, Subito, or Facebook Marketplace
 - 🔗 **Direct Link Processing** - Paste an Amazon product link and get instant output
@@ -17,12 +17,14 @@ An intelligent AI agent that generates detailed and professional Amazon product 
 - 📊 **Smart Token Management** - Automatic content truncation for optimal performance
 - 💬 **Multi-Tool Agent System** - Uses DataPizza framework for powerful agent capabilities
 - 🛡️ **Error Handling** - Robust error handling and logging throughout
-- ⚙️ **Configurable Models** - Easy switching between different OpenAI models
+- ⚙️ **Flexible Configuration** - Easy switching between providers and models
+- 🔄 **URL Expansion** - Automatic expansion of shortened Amazon URLs (amzn.to, a.co, etc.)
 
 ## 📋 Requirements
 
 - **Python 3.11+**
-- **OpenAI API Key**
+- **AI Provider API Key** (OpenAI or Google)
+- **Telegram Bot Token** (optional, only for Telegram bot mode)
 
 ## 🚀 Getting Started
 
@@ -55,13 +57,21 @@ An intelligent AI agent that generates detailed and professional Amazon product 
 4. **Configure environment variables:**
    ```bash
    cp .env.example .env
-   # Edit .env with your OpenAI API key and model preference
+   # Edit .env with your preferred AI provider API key
    ```
 
-   Your `.env` file should contain:
+   **For Google (default provider):**
+   ```env
+   GOOGLE_API_KEY=your_api_key_here
+   GOOGLE_MODEL=gemini-1.5-flash
+   TELEGRAM_BOT_TOKEN=your_telegram_token_here  # Optional
+   ```
+
+   **For OpenAI:**
    ```env
    OPENAI_API_KEY=your_api_key_here
-   OPENAI_MODEL=gpt-4.1-mini
+   OPENAI_MODEL=gpt-4o-mini
+   TELEGRAM_BOT_TOKEN=your_telegram_token_here  # Optional
    ```
 
 ### Running the Application
@@ -69,25 +79,32 @@ An intelligent AI agent that generates detailed and professional Amazon product 
 #### CLI - Generate a review or sales listing for an Amazon product:
 
 ```bash
-# Generate a review (default)
+# Generate a review using default provider (Google)
 python app.py https://www.amazon.com/your-product-link
 
 # Generate a sales listing
 python app.py --type listing https://www.amazon.com/your-product-link
+
+# Use OpenAI provider explicitly
+python app.py --provider openai https://www.amazon.com/your-product-link
+
+# Generate listing with OpenAI
+python app.py --type listing --provider openai https://www.amazon.com/your-product-link
 ```
 
-The agent will:
-1. Fetch the product page content
-2. Extract product information and existing reviews
-3. Analyze the data using AI
-4. Generate a professional, comprehensive review or sales listing
+**Supported providers:**
+- `google` (default) - Uses Google's Gemini models
+- `openai` - Uses OpenAI's GPT models
 
 #### Telegram Bot - Interactive chat interface:
 Quick start:
 ```bash
-# 1. Update .env with TELEGRAM_BOT_TOKEN
-# 2. Run the bot
+# 1. Update .env with TELEGRAM_BOT_TOKEN and your preferred provider credentials
+# 2. Run the bot with default provider (Google)
 python telegram_bot.py
+
+# Or specify a different provider
+python telegram_bot.py --provider openai
 ```
 
 Then open Telegram, find your bot, and start using it!
@@ -126,17 +143,22 @@ We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for:
 
 ### Common Issues
 
-**"OPENAI_API_KEY and OPENAI_MODEL must be defined in .env"**
-- Ensure your `.env` file exists and contains both variables
-- Check that the file is in the project root directory
+**"API key not found in .env"**
+- Ensure your `.env` file exists in the project root directory
+- Verify you have configured the credentials for your chosen provider
+- Check that the environment variable names are correct
+
+**"Unsupported provider" error**
+- Ensure you're using a valid provider: `openai` or `google`
+- Verify that the corresponding API credentials are set in your `.env` file
 
 **"Connection timeout"**
 - Verify your internet connection
-- Check OpenAI API status at [status.openai.com](https://status.openai.com)
+- Check the service status for your provider (OpenAI or Google)
 
 **"Rate limit exceeded"**
 - Wait a moment before retrying
-- Consider using a model with lower costs like `gpt-3.5-turbo`
+- Consider using a more cost-effective model variant
 
 ## 📄 License
 

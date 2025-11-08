@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 
@@ -30,6 +31,7 @@ WAITING_FOR_LINK, GENERATING_OUTPUT = range(2)
 # Global agent instances
 reviewer_agent = None
 listing_agent = None
+provider = "google"  # Default provider
 
 
 # Main keyboard layout
@@ -49,16 +51,28 @@ def _initialize_agent():
     """Initialize the Amazon Reviewer and Sales Listing Agents"""
     global reviewer_agent, listing_agent
     try:
-        openai_api_key = os.getenv("OPENAI_API_KEY")
-        openai_model = os.getenv("OPENAI_MODEL")
-
-        if not openai_api_key or not openai_model:
-            logger.error("OPENAI_API_KEY and OPENAI_MODEL must be defined in .env")
+        # Determine which provider and keys to use
+        if provider.lower() == "openai":
+            api_key = os.getenv("OPENAI_API_KEY")
+            model = os.getenv("OPENAI_MODEL")
+            if not api_key or not model:
+                logger.error("OPENAI_API_KEY and OPENAI_MODEL must be defined in .env")
+                return False
+        elif provider.lower() == "google":
+            api_key = os.getenv("GOOGLE_API_KEY")
+            model = os.getenv("GOOGLE_MODEL")
+            if not api_key or not model:
+                logger.error("GOOGLE_API_KEY and GOOGLE_MODEL must be defined in .env")
+                return False
+        else:
+            logger.error(f"Unsupported provider: {provider}")
             return False
 
-        reviewer_agent = AmazonReviewerAgent(openai_api_key, openai_model)
-        listing_agent = AmazonSalesListingAgent(openai_api_key, openai_model)
-        logger.info("Amazon Reviewer and Sales Listing Agents initialized successfully")
+        reviewer_agent = AmazonReviewerAgent(api_key, model, provider=provider)
+        listing_agent = AmazonSalesListingAgent(api_key, model, provider=provider)
+        logger.info(
+            f"Amazon Reviewer and Sales Listing Agents initialized successfully with provider: {provider}"
+        )
         return True
     except Exception as e:
         logger.error(f"Failed to initialize agents: {e}")
@@ -299,8 +313,29 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         )
 
 
+def _parse_arguments():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(
+        description="Start the Amazon AI Agent Telegram Bot"
+    )
+    parser.add_argument(
+        "--provider",
+        choices=["openai", "google"],
+        default="google",
+        help="AI provider: 'openai' or 'google' (default: google)",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
     """Start the bot"""
+    global provider
+
+    # Parse arguments
+    args = _parse_arguments()
+    provider = args.provider
+    logger.info(f"Starting Telegram bot with provider: {provider}")
+
     # Initialize the agent
     if not _initialize_agent():
         logger.error("Failed to initialize agent. Exiting.")

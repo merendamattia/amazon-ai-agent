@@ -2,14 +2,13 @@ import logging
 import os
 from abc import ABC, abstractmethod
 
-import requests
 from datapizza.agents import Agent
-from datapizza.clients.openai import OpenAIClient
-from datapizza.tools.web_fetch import WebFetchTool
 from dotenv import load_dotenv
 
 from utils.prompt_loader import load_prompt
-from utils.token_utils import truncate_to_max_tokens
+from utils.url_utils import expand_short_url
+from utils.client_utils import get_client
+from tools.web_fetch import create_web_fetch_tool
 
 # Load environment variables
 load_dotenv()
@@ -17,71 +16,27 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
-class TruncatedWebFetchTool:
-    """Wrapper for WebFetchTool that truncates responses to max tokens"""
-
-    def __init__(self, original_tool, max_tokens=None):
-        self.original_tool = original_tool
-        # Use env var if provided, otherwise use default
-        self.max_tokens = max_tokens or int(os.getenv("MAX_TOKENS", "200000"))
-
-    def __getattr__(self, name):
-        """Delegate attribute access to original tool"""
-        return getattr(self.original_tool, name)
-
-    def __call__(self, url):
-        """Call the tool and truncate the result"""
-        logger.debug(f"Fetching content from: {url}")
-        result = self.original_tool(url)
-        result = truncate_to_max_tokens(result, max_tokens=self.max_tokens)
-        return result
-
-
-def expand_short_url(short_url: str) -> str:
-    """
-    Expand shortened Amazon URLs (amzn.to, amzn.eu, a.co, etc.)
-    Follows HTTP redirects to get the final full URL
-
-    Args:
-        short_url: The shortened URL to expand
-
-    Returns:
-        str: The expanded full URL, or the original URL if expansion fails
-    """
-    try:
-        # Use requests.get() with allow_redirects to follow all redirects
-        response = requests.get(short_url, allow_redirects=True, timeout=5)
-
-        # Log all redirect history
-        for resp in response.history:
-            logger.info(f"Redirect: status code {resp.status_code} -> {resp.url}")
-
-        # Get the final URL
-        final_url = response.url
-        logger.info(f"Expanded short URL: {short_url} -> {final_url}")
-        return final_url
-    except Exception as e:
-        logger.warning(f"Could not expand URL {short_url}: {e}. Using original.")
-        return short_url
-
-
 class BaseAmazonAgent(ABC):
     """Base class for Amazon agents with common functionality"""
 
-    def __init__(self, api_key, model):
+    def __init__(self, api_key, model, provider="google"):
         """
         Initialize the BaseAmazonAgent
 
         Args:
-            api_key: OpenAI API key
-            model: OpenAI model name
+            api_key: API key for the provider
+            model: Model name
+            provider: Provider name ('openai' or 'google', default: 'google')
         """
         self.api_key = api_key
         self.model = model
+        self.provider = provider
         self.agent = None
         self.run_prompt_template = None
 
-        logger.info(f"Initializing {self.__class__.__name__} with model: {model}")
+        logger.info(
+            f"Initializing {self.__class__.__name__} with model: {model} (provider: {provider})"
+        )
         self._initialize_agent()
 
     def _initialize_agent(self):
@@ -90,23 +45,19 @@ class BaseAmazonAgent(ABC):
         system_prompt = load_prompt(self.get_system_prompt_filename())
         self.run_prompt_template = load_prompt(self.get_run_prompt_filename())
 
-        # Get configuration from environment variables
-        max_tokens = int(os.getenv("MAX_TOKENS", "200000"))
-        web_fetch_timeout = float(os.getenv("WEB_FETCH_TIMEOUT", "15"))
+        logger.info("Creating web fetch tool with truncation support")
 
-        logger.info(
-            f"Using MAX_TOKENS={max_tokens}, WEB_FETCH_TIMEOUT={web_fetch_timeout}"
-        )
+        # Create the web fetch tool with truncation
+        web_fetch_tool = create_web_fetch_tool()
 
-        # Create wrapped web tool with configuration
-        web_tool = WebFetchTool(timeout=web_fetch_timeout)
-        wrapped_tool = TruncatedWebFetchTool(web_tool, max_tokens=max_tokens)
+        # Get the appropriate client based on provider
+        client = get_client(self.provider, self.api_key, self.model)
 
-        # Create agent
+        # Create agent with the tool
         self.agent = Agent(
             name=self.get_agent_name(),
-            tools=[wrapped_tool],
-            client=OpenAIClient(api_key=self.api_key, model=self.model),
+            tools=[web_fetch_tool],
+            client=client,
             system_prompt=system_prompt,
         )
 
