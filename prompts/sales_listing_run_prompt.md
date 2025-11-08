@@ -2,7 +2,7 @@ Crea un annuncio di vendita completo in italiano per il prodotto Amazon al segue
 
 L'annuncio deve essere strutturato per piattaforme come Vinted, Subito, eBay o Facebook Marketplace e deve includere:
 
-1. Titolo: Un titolo accattivante e chiaro (1 riga)
+1. Titolo: Un titolo accattivante e chiaro (1 riga, massimo 50 caratteri)
 2. Descrizione: Presentazione del prodotto con le caratteristiche principali (4-6 righe)
 3. Caratteristiche chiave: Elenco puntato dei punti di forza (3-5 punti)
 4. Condizioni: Specifica lo stato del prodotto (scrivi sempre che la condizione è nuova)
