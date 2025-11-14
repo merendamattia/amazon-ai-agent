@@ -321,8 +321,8 @@ def _parse_arguments():
     parser.add_argument(
         "--provider",
         choices=["openai", "google"],
-        default="google",
-        help="AI provider: 'openai' or 'google' (default: google)",
+        default="openai",
+        help="AI provider: 'openai' or 'google' (default: openai)",
     )
     return parser.parse_args()
 
