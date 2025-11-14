@@ -1,3 +1,15 @@
+## [1.4.1](https://github.com/merendamattia/amazon-ai-agent/compare/v1.4.0...v1.4.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* update default AI provider to 'openai' in argument parser ([d54b2b7](https://github.com/merendamattia/amazon-ai-agent/commit/d54b2b7480ff556ca34d7b1049915302146b5c7b))
+
+
+### Performance Improvements
+
+* adjust MAX_TOKENS value in .env.example for optimal web content processing ([93e500b](https://github.com/merendamattia/amazon-ai-agent/commit/93e500bfefb782d8b1862f717f2c61b1c8eccb2b))
+
 # [1.4.0](https://github.com/merendamattia/amazon-ai-agent/compare/v1.3.1...v1.4.0) (2025-11-08)
 
 
